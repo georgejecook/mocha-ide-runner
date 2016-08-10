@@ -38,11 +38,6 @@ function main() {
 	}
 }
 
-
-/**********************************************************************
- UTIL METHODS
- *********************************************************************/
-
 function startsWith(s, text) {
 	return (s.substring(0, text.length) === text);
 }
@@ -137,12 +132,10 @@ function bundleFilesForTestRun(config) {
 
 		//1. lib files
 		var libPath = path.resolve(__dirname, '../../lib');
-
 		fs.copySync(libPath, config.localTempFilesPath)
 
-		//3. required reporter files
+		//2. required reporter files
 		var reporterPath = utils.getSourceReporterPath(config.ide);
-
 		fs.copySync(reporterPath, config.localTempFilesPath)
 	} catch (err) {
 		throw new Error('error copying files to remote ' + err);
