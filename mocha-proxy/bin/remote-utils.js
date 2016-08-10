@@ -1,5 +1,4 @@
-var fs = require('fs-extra'),
-	path = require('path'),
+var path = require('path'),
 	utils = require('../../lib/utils.js'),
 	promise = require('../../lib/tiny-promise');
 
