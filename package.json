@@ -1,0 +1,30 @@
+{
+  "name": "mocha-ide-runner",
+  "version": "0.0.1",
+  "description": "Run Mocha unit tests on remote hosts, in docker containers, or both",
+  "main": "index.js",
+  "dependencies": {
+    "fs-extra": "^0.30.0",
+    "lodash": "^4.14.1",
+		"glob-all": "^3.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://georgecook@bitbucket.org/georgecook/uaintellijdockermocha.git"
+  },
+  "keywords": [
+    "mocha",
+    "ide",
+    "intellij",
+    "docker",
+    "remote",
+    "proxy",
+    "run"
+  ],
+  "author": "George Cook",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/georgecook/uaintellijdockermocha#readme"
+}

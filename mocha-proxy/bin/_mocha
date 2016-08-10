@@ -1,0 +1,164 @@
+#!/usr/bin/env node
+
+var fs = require('fs-extra'),
+	path = require('path'),
+	_ = require('lodash');
+var glob = require('glob-all');
+
+var configUtils = require('../../lib/config-utils.js'),
+	utils = require('../../lib/utils.js'),
+	remoteUtils = require('./remote-utils'),
+	containerUtils = require('../../lib/container-utils');
+
+main();
+
+function overrideConfigWithIdeArgs(config, ideArgs) {
+	if (ideArgs.mode) {
+		config.mode = ideArgs.mode;
+	}
+}
+
+function main() {
+	var ideArgs = getArgsFromIde();
+	validateIdeArgs(ideArgs);
+
+	var config = configUtils.loadConfigFile(ideArgs.configFile);
+	configUtils.validateConfig(config);
+
+	overrideConfigWithIdeArgs(config, ideArgs);
+
+	createLocalTempFilesPath(config.localTempFilesPath);
+	createTestRunConfig(config, ideArgs);
+	bundleFilesForTestRun(config);
+
+	if (config.mode === 'remote' || config.mode === 'remoteContainer') {
+		remoteUtils.executeTests(config);
+	} else if (config.mode === 'container') {
+		containerUtils.executeTests(config);
+	}
+}
+
+
+/**********************************************************************
+ UTIL METHODS
+ *********************************************************************/
+
+function startsWith(s, text) {
+	return (s.substring(0, text.length) === text);
+}
+
+function getArgsFromIde() {
+	var ideArgs = {};
+
+	var cmdNext = false;
+	var cmd;
+	var cmdName = "";
+	var argsLength = process.argv.length;
+	var lastFoundCommandIndex = -1;
+	for (var i = 0; i < argsLength; i++) {
+
+		if (cmdNext) {
+			cmd = process.argv[i];
+			cmd = cmd.split(/\s+/);
+			var cmdValue = cmd.join(" ");
+			ideArgs[cmdName] = cmdValue;
+			cmdNext = false;
+			lastFoundCommandIndex = i;
+		} else if (startsWith(process.argv[i], '--')) {
+			cmdName = process.argv[i].substring(2);
+			cmdNext = true;
+		}
+	}
+
+	if (lastFoundCommandIndex + 1 < argsLength) {
+		ideArgs['patterns'] = process.argv.slice(lastFoundCommandIndex + 1);
+	}
+
+	return ideArgs;
+}
+
+function validateIdeArgs(args) {
+	if (!args.configFile) {
+		throw new Error('could not find config file ' + args.configFile);
+	}
+}
+
+function createLocalTempFilesPath(path) {
+	try {
+		fs.ensureDirSync(path);
+	} catch (err) {
+		throw new Error('error locating/creating host temp files path :' + err);
+	}
+}
+
+/**
+ * Merges both the config and ideArgs together, and writes them out to a tmp file which will be
+ * copied to the relevant targets (container or remote or both).
+ * Also populates the testrunConfig with a list of files to run tests for, if the ide passed in any
+ * regex patterns
+ * @param config
+ * @param ideArgs
+ */
+function createTestRunConfig(config, ideArgs) {
+	var testrunConfig = _.clone(config);
+	var lastRunConfigFile = utils.getConfigFilePath(config.localTempFilesPath);
+
+	testrunConfig.reporterPath = getReporterPath(config);
+
+	testrunConfig.targetSourcePath = getTargetRootPath(config);
+
+	if (ideArgs.recursive) {
+		testrunConfig.recursive = ideArgs.recursive.replace(config.localSourcePath, testrunConfig.targetSourcePath);
+	} else if (ideArgs.patterns) {
+		testrunConfig.files = glob.sync(ideArgs.patterns);
+	}
+
+	try {
+		fs.writeJsonSync(lastRunConfigFile, testrunConfig);
+	} catch (err) {
+		throw new Error('error writing test run config file :' + err);
+	}
+}
+
+function getReporterPath(config) {
+	if (config.mode === 'container' || config.mode === 'remoteContainer') {
+		return utils.getTargetReporterFilePath(config.containerTempFilesPath);
+	} else if (config.mode === 'remote') {
+		return utils.getTargetReporterFilePath(config.remoteTempFilesPath);
+	} else {
+		throw new Error('no reporter path with mode :' + config.mode);
+	}
+}
+
+function bundleFilesForTestRun(config) {
+	//bundle everything up into a folder to copy across
+	try {
+		fs.ensureDirSync(config.localTempFilesPath);
+
+		//1. lib files
+		var libPath = path.resolve(__dirname, '../../lib');
+
+		fs.copySync(libPath, config.localTempFilesPath)
+
+		//3. required reporter files
+		var reporterPath = utils.getSourceReporterPath(config.ide);
+
+		fs.copySync(reporterPath, config.localTempFilesPath)
+	} catch (err) {
+		throw new Error('error copying files to remote ' + err);
+	}
+}
+
+function getTargetRootPath(config) {
+	var rootPath = '';
+	switch (config.mode) {
+		case 'remote':
+			rootPath = config.remoteSourcePath;
+			break;
+		case 'container':
+		case 'remoteContainer':
+			rootPath = config.containerSourcePath;
+			break;
+	}
+	return rootPath;
+}

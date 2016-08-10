@@ -1,0 +1,45 @@
+{
+  "name": "mochaintellijDockerMocha",
+  "description": "Proxy mocha tests via a docker container",
+  "version": "0.1.0",
+  "author": {
+    "name": "George Cook",
+    "email": "george.cook@twintechs.com"
+  },
+  "homepage": "https://georgecook@bitbucket.org/georgecook/uaintellijdockermocha#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://georgecook@bitbucket.org/georgecook/uaintellijdockermocha.git"
+  },
+  "bugs": {
+    "url": "https://georgecook@bitbucket.org/georgecook/uaintellijdockermocha/issues"
+  },
+  "main": "bin/_mocha",
+  "keywords": [
+    "mocha",
+    "jetbrains",
+    "webstorm",
+    "intellij"
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "name": "George Cook",
+      "email": "george.cook@twintechs.com"
+    }
+  ],
+  "directories": {},
+  "scripts": {
+  },
+  "_from": "mocha-proxy@*",
+  "_npmVersion": "2.12.1",
+  "_npmUser": {
+    "name": "George Cook",
+    "email": "george.cook@twintechs.com"
+  },
+  "_id": "mocha-proxy@0.1.0",
+  "gitHead": "",
+  "_shasum": "",
+  "_nodeVersion": "0.10.4",
+  "_resolved": ""
+}
