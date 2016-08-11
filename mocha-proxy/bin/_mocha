@@ -99,9 +99,8 @@ function createTestRunConfig(config, ideArgs) {
 	var lastRunConfigFile = utils.getConfigFilePath(config.localTempFilesPath);
 
 	testrunConfig.reporterPath = getReporterPath(config);
-
 	testrunConfig.targetSourcePath = getTargetRootPath(config);
-
+	
 	if (ideArgs.recursive) {
 		testrunConfig.recursive = ideArgs.recursive.replace(config.localSourcePath, testrunConfig.targetSourcePath);
 	} else if (ideArgs.patterns) {
